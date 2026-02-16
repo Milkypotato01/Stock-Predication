@@ -13,6 +13,8 @@ def test_train_divide(df):
     y_train = y.iloc[:split_index]
     y_test = y.iloc[split_index:]
 
+
+
     print("Data splitting done")
 
     split_data = {

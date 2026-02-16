@@ -50,6 +50,7 @@ def proper_preprocessing(Data):
     print("Preprocessing Done")
     df.to_pickle("processed_stock_data.pkl")
     print("Data saved as processed_stock_data.pkl")
+    
     return df
 
 proper_preprocessing(r"C:\Users\dell\OneDrive\Desktop\Stock predictation Project\test data\indexProcessed.csv")

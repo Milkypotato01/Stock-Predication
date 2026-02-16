@@ -47,6 +47,10 @@ def model_evaluation(y_test, y_pred, y_prob):
 
     strategy_return = df_results["Predicted"] * df["Return"].iloc[-len(y_test):].values
     print("Strategy Mean Return:", strategy_return.mean() , "%")
+    
+    model_features = X_train.columns.tolist()
+    joblib.dump(model_features, "model_features.pkl")
+
 
 
 print("Evaluating the model...")
