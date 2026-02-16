@@ -1,10 +1,14 @@
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from Preprocessing import proper_preprocessing
-from Data_spliting import test_train_divide
 import joblib
 
-df = proper_preprocessing(r"C:\Users\dell\OneDrive\Desktop\Stock predictation Project\test data\indexProcessed.csv")
-X_train, X_test, y_train, y_test = test_train_divide(df)
+df = pd.read_pickle("processed_stock_data.pkl")    
+
+X_train = joblib.load("X_train.pkl")
+X_test = joblib.load("X_test.pkl")
+y_train = joblib.load("y_train.pkl")
+y_test = joblib.load("y_test.pkl")
+
 
 model = RandomForestClassifier(
     n_estimators=200,
@@ -20,5 +24,6 @@ print("Training the model...")
 model.fit(X_train, y_train)
 joblib.dump(model, "stock_model.pkl")
 
-print("Model saved as stock_model.pkl")
+print("Model trained and saved as stock_model.pkl")
+
 

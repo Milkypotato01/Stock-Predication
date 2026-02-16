@@ -1,7 +1,5 @@
-
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
 def proper_preprocessing(Data):
     #sorting 
@@ -28,7 +26,11 @@ def proper_preprocessing(Data):
     df = df.dropna()
     df = df.reset_index(drop=True)
     print("Preprocessing Done")
+    df.to_pickle("processed_stock_data.pkl")
+    print("Data saved as processed_stock_data.pkl")
     return df
+
+proper_preprocessing(r"C:\Users\dell\OneDrive\Desktop\Stock predictation Project\test data\indexProcessed.csv")
 
 # print("\nZero volume rows:", len(zero_volume))
 # # Check duplicate dates

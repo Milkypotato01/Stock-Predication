@@ -1,19 +1,17 @@
-
-from xml.parsers.expat import model
-from Preprocessing import proper_preprocessing
-from Data_spliting import test_train_divide
 import pandas as pd
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score
 import joblib
 
+print("Loading the model...")
 model = joblib.load("stock_model.pkl")
 
-df = proper_preprocessing(r"C:\Users\dell\OneDrive\Desktop\Stock predictation Project\test data\indexProcessed.csv")
-X_train, X_test, y_train, y_test = test_train_divide(df)
+X_train = joblib.load("X_train.pkl")
+X_test = joblib.load("X_test.pkl")
+y_train = joblib.load("y_train.pkl")
+y_test = joblib.load("y_test.pkl")
 
 print("Training the model...")
 
-model.fit(X_train, y_train)
 y_prob = model.predict_proba(X_test)[:, 1]  # Get probabilities for the positive class
 y_pred = (y_prob > 0.45).astype(int)   # try 0.45 instead of 0.5
 
