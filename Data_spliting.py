@@ -1,3 +1,6 @@
+import joblib
+import pandas as pd
+
 def test_train_divide(df):
     X = df.drop(columns=["Date", "Adj Close", "Target"])
     y = df["Target"]
@@ -11,5 +14,13 @@ def test_train_divide(df):
     y_test = y.iloc[split_index:]
 
     print("Data splitting done")
+
+    joblib.dump(X_train, "X_train.pkl")
+    joblib.dump(X_test, "X_test.pkl")
+    joblib.dump(y_train, "y_train.pkl")
+    joblib.dump(y_test, "y_test.pkl")
+
+    print("Data saved to disk")
+
+test_train_divide(pd.read_pickle("processed_stock_data.pkl"))
     
-    return X_train, X_test, y_train, y_test
