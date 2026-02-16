@@ -2,7 +2,7 @@ import joblib
 import pandas as pd
 
 def test_train_divide(df):
-    X = df.drop(columns=["Date", "Adj Close", "Target"])
+    X = df.drop(columns=["Date", "Target"])
     y = df["Target"]
     
     # Calculate split index (80%)
@@ -15,12 +15,17 @@ def test_train_divide(df):
 
     print("Data splitting done")
 
-    joblib.dump(X_train, "X_train.pkl")
-    joblib.dump(X_test, "X_test.pkl")
-    joblib.dump(y_train, "y_train.pkl")
-    joblib.dump(y_test, "y_test.pkl")
+    split_data = {
+    "X_train": X_train,
+    "X_test": X_test,
+    "y_train": y_train,
+    "y_test": y_test
+    }
+
+    joblib.dump(split_data, "data_split.pkl")
 
     print("Data saved to disk")
 
-test_train_divide(pd.read_pickle("processed_stock_data.pkl"))
-    
+if __name__ == "__main__":
+    df = pd.read_pickle("processed_stock_data.pkl")
+    test_train_divide(df)
