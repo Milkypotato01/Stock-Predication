@@ -2,12 +2,12 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import joblib
 
-df = pd.read_pickle("processed_stock_data.pkl")    
+data = joblib.load("data_split.pkl")
 
-X_train = joblib.load("X_train.pkl")
-X_test = joblib.load("X_test.pkl")
-y_train = joblib.load("y_train.pkl")
-y_test = joblib.load("y_test.pkl")
+X_train = data["X_train"]
+X_test = data["X_test"]
+y_train = data["y_train"]
+y_test = data["y_test"]
 
 
 model = RandomForestClassifier(
