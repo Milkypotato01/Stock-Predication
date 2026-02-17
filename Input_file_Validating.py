@@ -1,46 +1,36 @@
-import joblib
 import pandas as pd
+import yfinance as yf
 
-def validate_input_file(file_path):
-    try:
-        df = pd.read_csv(file_path)
-    except Exception as e:
-        print("File could not be read.")
-        print("Error:", e)
+df = yf.download("RELIANCE.NS", start="1970-01-01", end="2024-12-31")
+
+def validate_stock_data(df):
+
+    if df is None or df.empty:
+        print("DataFrame is empty.")
         return False
 
-    if df.empty:
-        print("File is empty.")
-        return False
-
-    required_columns = ["Date", "Adj Close"]
-
+    df.reset_index(inplace=True)
+    df.columns = df.columns.get_level_values(0)
+    df.columns.name = None
+    
+    required_columns = ["Date", "Close", "Volume"]
     missing_columns = [col for col in required_columns if col not in df.columns]
 
     if missing_columns:
-        print("Missing required columns:", missing_columns)
+        print(f"Missing required columns: {missing_columns}")
         return False
 
-    # Validate Date format
-    try:
-        df["Date"] = pd.to_datetime(df["Date"])
-    except Exception:
-        print("Date column is not in valid datetime format.")
+    if not pd.api.types.is_datetime64_any_dtype(df["Date"]):
+        print("Column 'Date' is not in datetime format.")
         return False
 
-    # Validate Adj Close numeric
-    if not pd.api.types.is_numeric_dtype(df["Adj Close"]):
-        print("Adj Close column is not numeric.")
+    if not pd.api.types.is_numeric_dtype(df["Close"]):
+        print("Column 'Close' is not numeric.")
         return False
 
-    print("Validation passed. File structure is correct.")
+    if not pd.api.types.is_numeric_dtype(df["Volume"]):
+        print("Column 'Volume' is not numeric.")
+        return False
+
+    print("Validation successful.")
     return True
-
-file_path = r"C:\Users\dell\OneDrive\Desktop\Stock predictation Project\test data\indexProcessed.csv"
-
-if validate_input_file(file_path):
-    print("Ready for preprocessing...")
-    print("All required model features present.")
-else:
-    print("Fix the file before Preprocessing.")
-

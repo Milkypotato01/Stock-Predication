@@ -1,22 +1,33 @@
 import pandas as pd
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score
+import yfinance as yf
 import joblib
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score
+from Data_spliting import test_train_divide
+from Input_file_Validating import validate_stock_data
+from Preprocessing import proper_preprocessing
+from Features import Feature_data
 
-df = pd.read_pickle("processed_stock_data.pkl")
+df = yf.download("TCS.NS", start="1970-01-01", end="2024-12-31")
 
-print("Loading the model...")
-model = joblib.load("stock_model.pkl")
-data = joblib.load("data_split.pkl")
+validate_stock_data(df)
+df = proper_preprocessing(df)
+df = Feature_data(df)
+data = test_train_divide(df)
 
 X_train = data["X_train"]
 X_test = data["X_test"]
 y_train = data["y_train"]
 y_test = data["y_test"]
 
+print("Loading the model...")
+model = joblib.load("stock_model_v5.pkl")
+model_features = joblib.load("model_features.pkl")
+print("Model Features:", model_features)
+
 print("Evaluating the model...")
 
 y_prob = model.predict_proba(X_test)[:, 1]  # Get probabilities for the positive class
-y_pred = (y_prob > 0.45).astype(int)   # try 0.45 instead of 0.5
+y_pred = (y_prob > 0.60).astype(int)   # try 0.45 instead of 0.5
 
 
 def model_evaluation(y_test, y_pred, y_prob):
