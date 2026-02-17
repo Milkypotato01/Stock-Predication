@@ -13,8 +13,6 @@ def test_train_divide(df):
     y_train = y.iloc[:split_index]
     y_test = y.iloc[split_index:]
 
-
-
     print("Data splitting done")
 
     split_data = {
@@ -24,10 +22,8 @@ def test_train_divide(df):
     "y_test": y_test
     }
 
-    joblib.dump(split_data, "data_split.pkl")
+    return split_data
 
-    print("Data saved to disk")
-
-if __name__ == "__main__":
-    df = pd.read_pickle("processed_stock_data.pkl")
-    test_train_divide(df)
+# if __name__ == "__main__":
+#     df = pd.read_pickle("processed_stock_data.pkl")
+#     test_train_divide(df)
