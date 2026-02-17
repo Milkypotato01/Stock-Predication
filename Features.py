@@ -1,13 +1,20 @@
 import numpy as np
 import joblib
+import yfinance as yf
+
+from Input_file_Validating import validate_stock_data
+from Preprocessing import proper_preprocessing
+
+df = yf.download("RELIANCE.NS", start="1970-01-01", end="2024-12-31")
+validate_stock_data(df)
+df = proper_preprocessing(df)
 
 def Feature_data(df):
-    #readjusting
-    df = df[["Date", "Close" , "Volume"]]
     
     # Derieving features
     df["Volume_MA_5"] = df["Volume"].rolling(5).mean()
     df["Volume_Spike"] = df["Volume"] / df["Volume_MA_5"]
+    df.drop(columns=["Volume_MA_5"], inplace=True)
     df["OBV"] = (np.sign(df["Close"].diff()) * df["Volume"]).fillna(0).cumsum()
     df["VWAP"] = (df["Close"] * df["Volume"]).cumsum() / df["Volume"].cumsum()
     df["VWAP_Distance"] = df["Close"] - df["VWAP"]
@@ -19,9 +26,9 @@ def Feature_data(df):
 # df["Price_Volume_Corr"] = df["Return"].rolling(10).corr(df["Volume"])
 
     df["Return"] = df["Close"].pct_change()
-    df["MA_5"] = df["Close"].rolling(window=5).mean()
-    df["MA_10"] = df["Close"].rolling(window=10).mean()
-    df["MA_20"] = df["Close"].rolling(window=20).mean()
+    # df["MA_5"] = df["Close"].rolling(window=5).mean()
+    # df["MA_10"] = df["Close"].rolling(window=10).mean()
+    # df["MA_20"] = df["Close"].rolling(window=20).mean()
     df["Volatility_5"] = df["Return"].rolling(window=5).std()
     df["Volatility_10"] = df["Return"].rolling(window=10).std()
     df["Target"] = np.where(df["Close"].shift(-1) > df["Close"], 1, 0)
@@ -49,16 +56,13 @@ def Feature_data(df):
     # Remove NaN 
     df = df.dropna()
     df = df.reset_index(drop=True)
-    print("Preprocessing Done")
-    df.to_pickle("processed_stock_data.pkl")
+    print("Preprocessing [Feature part (2/2)] Done")
+    # df.to_pickle("processed_stock_data.pkl")
     print("Data saved as processed_stock_data.pkl")
     
     return df
-    df = joblib.load("preprocessed_data.pkl")
-    df = joblib.load("preprocessed_data.pkl")
-df = joblib.load("preprocessed_data.pkl")
-Feature_data(df)
-old_data = Feature_data(r"C:\Users\dell\OneDrive\Desktop\Stock predictation Project\test data\indexProcessed.csv")
+
+
 
 # print("\nZero volume rows:", len(zero_volume))
 # # Check duplicate dates

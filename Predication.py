@@ -1,13 +1,30 @@
-from Preprocessing import proper_preprocessing
+import yfinance as yf
 import joblib
 import pandas as pd
+from Data_spliting import test_train_divide
+from Input_file_Validating import validate_stock_data
+from Preprocessing import proper_preprocessing
+from Features import Feature_data
+import matplotlib.pyplot as plt
 
-model = joblib.load("stock_model.pkl")
+df = yf.download("TCS.NS", start="2024-01-01", end="2024-12-23")
+model = joblib.load("stock_model_v2.pkl")
 model_features = model.feature_names_in_
-df = proper_preprocessing()
 
+validate_stock_data(df)
+df = proper_preprocessing(df)
+
+dp = df.copy()
+df = Feature_data(df)
+data = test_train_divide(df)
+print(df)
+print("Model Features:", model_features)
 future_predictions = []
 df_copy = df.copy()
+
+
+
+
 
 def predict_future(df, model, days=4):  
     for i in range(days):   # predict next 4 days
@@ -50,13 +67,40 @@ def predict_future(df, model, days=4):
         df_copy = df_copy.dropna()
         print(pd.DataFrame(future_predictions))
 
-def next_day():
+def next_day(df, model, threshold=0.45):
+    
+    if not hasattr(model, "feature_names_in_"):
+        raise ValueError("Model is not trained yet.")
+    
     latest = df.iloc[-1:]
+    missing = [col for col in model_features if col not in df.columns]
+    if missing:
+        raise ValueError(f"Missing features in input data: {missing}")
+    
     X = latest[model_features]
     
     prob = model.predict_proba(X)[:, 1][0]
-    pred = 1 if prob > 0.45 else 0
+    pred = 1 if prob > threshold else 0
     
     print("Next Day Direction:", "UP" if pred == 1 else "DOWN")
-    print("Confidence:", prob)
+    print("Confidence:", round(prob, 4))
+    
+    return pred, prob
+
+
+next_day(df, model)
+# Plot Date vs Close
+plt.figure(figsize=(10, 5))
+plt.plot(dp["Date"], dp["Close"])
+plt.title("TCS Closing Price")
+plt.xlabel("Date")
+plt.ylabel("Close Price")
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+
+
 
