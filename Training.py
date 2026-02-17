@@ -1,9 +1,9 @@
-import pandas as pd
+from Data_spliting import test_train_divide
 from sklearn.ensemble import RandomForestClassifier
 import joblib
 
-data = joblib.load("data_split.pkl")
-
+data = joblib.load("processed_stock_data.pkl")
+data = test_train_divide(data)
 X_train = data["X_train"]
 X_test = data["X_test"]
 y_train = data["y_train"]
