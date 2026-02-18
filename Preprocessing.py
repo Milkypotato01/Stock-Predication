@@ -18,7 +18,7 @@ def proper_preprocessing(df):
     #readjusting
     df = df.drop(columns=["Index"], errors="ignore")
     df = df.reset_index(drop=True)
-    df = df[["Date", "Close"]]
+    df = df[["Date", "Close" , "Volume"]]
     print("Preprocessing Done")
     return df
 

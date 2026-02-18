@@ -32,8 +32,8 @@ model = RandomForestClassifier(
 print("Training the model...")
 
 model.fit(X_train, y_train)
-joblib.dump(model, "stock_model_v5.pkl")
+joblib.dump(model, "stock_model_v2.pkl")
 
-print("Model trained and saved as stock_model.pkl")
+print("Model trained and saved as stock_model_v2.pkl")
 
 
