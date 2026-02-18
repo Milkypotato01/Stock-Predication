@@ -11,25 +11,25 @@ df = proper_preprocessing(df)
 
 def Feature_data(df):
     
-    # Derieving features
+    # umimp para
     # df["Volume_MA_5"] = df["Volume"].rolling(5).mean()
     # df["Volume_Spike"] = df["Volume"] / df["Volume_MA_5"]
     # df.drop(columns=["Volume_MA_5"], inplace=True)
-    # df["OBV"] = (np.sign(df["Close"].diff()) * df["Volume"]).fillna(0).cumsum()
-    # df["VWAP"] = (df["Close"] * df["Volume"]).cumsum() / df["Volume"].cumsum()
-    # df["VWAP_Distance"] = df["Close"] - df["VWAP"]
-    # df["Volume_Zscore_20"] = (
-    #     (df["Volume"] - df["Volume"].rolling(20).mean()) /
-    #     df["Volume"].rolling(20).std()
-    # )
+    df["OBV"] = (np.sign(df["Close"].diff()) * df["Volume"]).fillna(0).cumsum()
+    df["VWAP"] = (df["Close"] * df["Volume"]).cumsum() / df["Volume"].cumsum()
+    df["VWAP_Distance"] = df["Close"] - df["VWAP"]
+    df["Volume_Zscore_20"] = (
+        (df["Volume"] - df["Volume"].rolling(20).mean()) /
+        df["Volume"].rolling(20).std()
+    )
 
 # df["Price_Volume_Corr"] = df["Return"].rolling(10).corr(df["Volume"])
 
     df["Return"] = df["Close"].pct_change()
-    df["MA_5"] = df["Close"].rolling(window=5).mean()
-    df["MA_10"] = df["Close"].rolling(window=10).mean()
-    df["MA_20"] = df["Close"].rolling(window=20).mean()
-    df["Volatility_5"] = df["Return"].rolling(window=5).std()
+    # df["MA_5"] = df["Close"].rolling(window=5).mean()
+    # df["MA_10"] = df["Close"].rolling(window=10).mean()
+    # df["MA_20"] = df["Close"].rolling(window=20).mean()
+    # df["Volatility_5"] = df["Return"].rolling(window=5).std()
     df["Volatility_10"] = df["Return"].rolling(window=10).std()
     df["Target"] = np.where(df["Close"].shift(-1) > df["Close"], 1, 0)
 

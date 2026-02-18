@@ -21,14 +21,17 @@ y_train = data["y_train"]
 y_test = data["y_test"]
 
 print("Loading the model...")
-model = joblib.load("stock_model.pkl")
+model = joblib.load("stock_model_v2.pkl")
 model_features = model.feature_names_in_.tolist()
 print("Model Features:", model_features)
 
 print("Evaluating the model...")
 
 y_prob = model.predict_proba(X_test)[:, 1]  # Get probabilities for the positive class
-y_pred = (y_prob > 0.60).astype(int)   # try 0.45 instead of 0.5
+y_pred = (y_prob > 0.47).astype(int)   # try 0.45 instead of 0.5
+
+print( "Y_prob_mean" , y_prob.mean())
+print( " Y_prob_describe" ,pd.Series(y_prob).describe())
 
 
 def model_evaluation(y_test, y_pred, y_prob):
