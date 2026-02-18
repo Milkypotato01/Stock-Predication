@@ -1,74 +1,111 @@
 import yfinance as yf
 import joblib
 import pandas as pd
-from Data_spliting import test_train_divide
+import numpy as np
+
 from Input_file_Validating import validate_stock_data
 from Preprocessing import proper_preprocessing
 from Features import Feature_data
 import matplotlib.pyplot as plt
 
-df = yf.download("TCS.NS", start="2024-01-01", end="2024-12-23")
-model = joblib.load("stock_model_v2.pkl")
-model_features = model.feature_names_in_
+df = yf.download("TCS.NS", start="2024-01-01", end="2024-12-23") 
+model = joblib.load("stock_model_v2.pkl") 
+model_features = model.feature_names_in_ 
+validate_stock_data(df) 
+df = proper_preprocessing(df) 
+df_raw = df.copy() #DF with Close Volumn etc df = Feature_data(df) print(df) print("Model Features:", model_features) future_predictions = []
 
-validate_stock_data(df)
-df = proper_preprocessing(df)
+def predict_future(df_raw, model, model_features =  model.feature_names_in_, days=4, threshold=0.47):
 
-dp = df.copy()
-df = Feature_data(df)
-data = test_train_divide(df)
-print(df)
-print("Model Features:", model_features)
-future_predictions = []
-df_copy = df.copy()
+    df_price = df_raw.copy()
+    predictions = []
 
+    # Initial full feature calculation (only once)
+    df_processed = proper_preprocessing(df_price)
+    df_features = Feature_data(df_processed)
 
+    # Define rolling window size (adjust if your indicators need more)
+    window_size = 120  
 
+    for i in range(days):
 
-
-def predict_future(df, model, days=4):  
-    for i in range(days):   # predict next 4 days
-        
-        # Take last available row
-        last_row = df_copy.iloc[-1:]
+        last_row = df_features.iloc[-1:]
         X = last_row[model_features]
-        
-        prob = model.predict_proba(X)[:, 1][0]
-        pred = 1 if prob > 0.45 else 0
-        
-        future_predictions.append({
+
+        prob = model.predict_proba(X)[0, 1]
+        pred = int(prob > threshold)
+
+        predictions.append({
             "Day": i+1,
             "Prediction": pred,
-            "Probability": prob
+            "Probability": round(prob, 4)
         })
-        
-        # --- Simulate next day close ---
-        
-        last_close = df_copy["Adj Close"].iloc[-1]
-        
-        # If prediction = 1 assume small positive move
-        # If 0 assume small negative move
-        simulated_return = 0.005 if pred == 1 else -0.005
-        
+
+        # simulate return
+        mean_up = df_features[df_features["Return"] > 0]["Return"].mean()
+        mean_down = df_features[df_features["Return"] < 0]["Return"].mean()
+
+        simulated_return = prob * mean_up + (1 - prob) * mean_down
+        last_close = df_price["Close"].iloc[-1]
         new_close = last_close * (1 + simulated_return)
-        
-        # Create new row
-        new_row = df_copy.iloc[-1:].copy()
-        new_row["Adj Close"] = new_close
-        
-        # Append and recompute features
-        df_copy = pd.concat([df_copy, new_row])
-        
-        # Recalculate indicators
-        df_copy["Return"] = df_copy["Adj Close"].pct_change()
-        df_copy["MA_5"] = df_copy["Adj Close"].rolling(5).mean()
-        df_copy["MA_10"] = df_copy["Adj Close"].rolling(10).mean()
-        
-        df_copy = df_copy.dropna()
-        print(pd.DataFrame(future_predictions))
+
+        new_row = df_price.iloc[-1:].copy()
+        new_row["Close"] = new_close
+
+        df_price = pd.concat([df_price, new_row], ignore_index=True)
+
+        # 🔥 Recompute features ONLY on recent window
+        df_processed = proper_preprocessing(df_price.tail(window_size))
+        df_new_features = Feature_data(df_processed)
+
+        # Append only the last newly computed feature row
+        df_features = pd.concat(
+            [df_features, df_new_features.iloc[-1:]],
+            ignore_index=True
+        )
+
+    return pd.DataFrame(predictions)
+
+
+# def predict_future(df_raw, model, model_features, days=4, threshold=0.47):
+
+#     df_price = df_raw.copy()
+#     predictions = []
+
+#     for i in range(days):
+
+#         df_processed = proper_preprocessing(df_price)
+#         df_features = Feature_data(df_processed)
+
+#         last_row = df_features.iloc[-1:]
+#         X = last_row[model_features]
+
+#         prob = model.predict_proba(X)[0, 1]
+#         pred = int(prob > threshold)
+
+#         predictions.append({
+#             "Day": i+1,
+#             "Prediction": pred,
+#             "Probability": round(prob, 4)
+#         })
+
+#         # simulate return
+#         mean_up = df_features[df_features["Return"] > 0]["Return"].mean()
+#         mean_down = df_features[df_features["Return"] < 0]["Return"].mean()
+
+#         simulated_return = prob * mean_up + (1 - prob) * mean_down
+#         last_close = df_price["Close"].iloc[-1]
+#         new_close = last_close * (1 + simulated_return)
+
+#         new_row = df_price.iloc[-1:].copy()
+#         new_row["Close"] = new_close
+
+#         df_price = pd.concat([df_price, new_row], ignore_index=True)
+
+#     return pd.DataFrame(predictions)
+
 
 def next_day(df, model, threshold=0.45):
-    
     if not hasattr(model, "feature_names_in_"):
         raise ValueError("Model is not trained yet.")
     
@@ -87,18 +124,18 @@ def next_day(df, model, threshold=0.45):
     
     return pred, prob
 
+def plot_graph(df_raw):
+    plt.figure(figsize=(10, 5))
+    plt.plot(df_copy["Date"], df_copy["Close"])
+    plt.title("TCS Closing Price")
+    plt.xlabel("Date")
+    plt.ylabel("Close Price")
+    plt.xticks(rotation=45)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
-next_day(df, model)
-# Plot Date vs Close
-plt.figure(figsize=(10, 5))
-plt.plot(dp["Date"], dp["Close"])
-plt.title("TCS Closing Price")
-plt.xlabel("Date")
-plt.ylabel("Close Price")
-plt.xticks(rotation=45)
-plt.grid(True)
-plt.tight_layout()
-plt.show()
+print(predict_future(df_raw, model, days=50))
 
 
 
