@@ -7,7 +7,8 @@ from Input_file_Validating import validate_stock_data
 from Preprocessing import proper_preprocessing
 from Features import Feature_data
 
-df = yf.download("TCS.NS", start="1970-01-01", end="2024-12-31")
+# df = yf.download("TCS.NS", start="1970-01-01", end="2024-12-31")
+df = pd.read_csv("C:\\Users\\dell\\OneDrive\\Desktop\\Stock predictation Project\\test data\\indexProcessed.csv")
 
 validate_stock_data(df)
 df = proper_preprocessing(df)
@@ -20,8 +21,8 @@ y_train = data["y_train"]
 y_test = data["y_test"]
 
 print("Loading the model...")
-model = joblib.load("stock_model_v5.pkl")
-model_features = joblib.load("model_features.pkl")
+model = joblib.load("stock_model.pkl")
+model_features = model.feature_names_in_.tolist()
 print("Model Features:", model_features)
 
 print("Evaluating the model...")
@@ -61,7 +62,7 @@ def model_evaluation(y_test, y_pred, y_prob):
     
     model_features = X_train.columns.tolist()
     joblib.dump(model_features, "model_features.pkl")
-
+print("feature of model" , model_features)
 
 
 print("Evaluating the model...")
