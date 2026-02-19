@@ -13,20 +13,22 @@ y_test = data["y_test"]
 
 
 model = RandomForestClassifier(
-    n_estimators=400,
-    max_depth=10,
-    min_samples_split=20,
-    min_samples_leaf=5,
-    class_weight='balanced',
+    n_estimators=800,
+    max_depth=15,
+    min_samples_split=50,
+    min_samples_leaf=20,
     max_features="sqrt",
+    class_weight="balanced_subsample",
+    n_jobs=-1,
     random_state=42
 )
+
 
 print("Training the model...")
 
 model.fit(X_train, y_train)
-joblib.dump(model, "stock_model_v3.pkl")
+joblib.dump(model, "stock_model_v5.pkl")
 
-print("Model trained and saved as stock_model_v3.pkl")
+print("Model trained and saved as stock_model_v2.pkl")
 
 

@@ -1,6 +1,8 @@
 import pandas as pd
 import yfinance as yf
 import joblib
+import numpy as np
+from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score
 from Data_spliting import test_train_divide
 
@@ -14,14 +16,22 @@ y_train = data["y_train"]
 y_test = data["y_test"]
 
 print("Loading the model...")
-model = joblib.load("stock_model_v3.pkl")
+model = joblib.load("stock_model_v5.pkl")
 model_features = model.feature_names_in_.tolist()
 print("Model Features:", model_features)
 
 print("Evaluating the model...")
 
-y_prob = model.predict_proba(X_test)[:, 1]  # Get probabilities for the positive class
-y_pred = (y_prob > 0.47).astype(int)   # try 0.45 instead of 0.5
+y_prob = model.predict_proba(X_test)[:, 1] 
+fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+
+optimal_idx = np.argmax(tpr - fpr)
+optimal_threshold = thresholds[optimal_idx]
+
+print("Optimal threshold:", optimal_threshold)
+
+y_pred = (y_prob >= optimal_threshold).astype(int)
+
 
 print( "Y_prob_mean" , y_prob.mean())
 print( " Y_prob_describe" ,pd.Series(y_prob).describe())

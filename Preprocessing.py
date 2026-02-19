@@ -26,7 +26,7 @@ def proper_preprocessing(df):
             return pd.DataFrame()
 
     # 4. Ensure required columns exist
-    required_cols = ["Date", "Close", "Volume"]
+    required_cols = ["Date", "Close", "Volume", "High", "Low"]
 
     missing = [col for col in required_cols if col not in df.columns]
 
@@ -52,7 +52,7 @@ def proper_preprocessing(df):
     df = df.reset_index(drop=True)
 
     # 10. Keep only required columns
-    df = df[["Date", "Close", "Volume"]]
+    df = df[["Date", "High", "Low", "Close", "Volume"]]
 
     print("Preprocessing Done")
 

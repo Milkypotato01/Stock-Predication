@@ -36,11 +36,11 @@ def Feature_data(df):
     df["Price_vs_EMA200"] = (df["Close"] / ema200) - 1
     
     # VOLUME normalized
-    df["Volume_ratio"] = df["Volume"] / df["Volume"].rolling(20).mean()
-    df["Volume_z"] = (
-        (df["Volume"] - df["Volume"].rolling(20).mean()) /
-        df["Volume"].rolling(20).std()
-    )
+    # df["Volume_ratio"] = df["Volume"] / df["Volume"].rolling(20).mean()
+    # df["Volume_z"] = (
+    #     (df["Volume"] - df["Volume"].rolling(20).mean()) /
+    #     df["Volume"].rolling(20).std()
+    # )
     
     # RSI normalized
     delta = df["Close"].diff()
@@ -53,10 +53,48 @@ def Feature_data(df):
     rs = avg_gain / avg_loss
     df["RSI"] = (100 - (100 / (1 + rs))) / 100
     
-    # TARGET
-    df["Target"] = (df["Close"].shift(-1) > df["Close"]).astype(int)
+    df["Trend_acceleration"] = df["Momentum_5"] - df["Momentum_20"]
 
-    df = df.drop(columns=["Close" , "Volume"] , errors="ignore")
+# EMA
+    df["EMA_10"] = df["Close"].ewm(span=10).mean()
+    df["EMA_20"] = df["Close"].ewm(span=20).mean()
+    df["EMA_50"] = df["Close"].ewm(span=50).mean()
+    
+    # Normalized EMA features
+    df["Price_vs_EMA10"] = df["Close"] / df["EMA_10"]
+    df["Price_vs_EMA20"] = df["Close"] / df["EMA_20"]
+    df["Price_vs_EMA50"] = df["Close"] / df["EMA_50"]
+    
+    # Trend signal
+
+    
+    # ATR
+    df["ATR"] = (df["High"] - df["Low"]).rolling(14).mean()
+    df["ATR_pct"] = df["ATR"] / df["Close"]
+    
+    # Breakout feature
+    df["Breakout_20"] = df["Close"] / df["Close"].rolling(20).max()
+    
+    # Volume spike
+    # df["Volume_spike"] = df["Volume"] / df["Volume"].rolling(20).mean()
+    
+    
+    # DROP stock-dependent columns
+    df.drop(columns=[
+        "EMA_10",
+        "EMA_20",
+        "EMA_50",
+        "ATR" ,
+        "High",
+        "Low"
+    ], inplace=True, errors="ignore")
+    
+ 
+    df["Future_Return_5"] = df["Close"].shift(-5) / df["Close"] - 1
+    df["Target"] = (df["Future_Return_5"] > 0.01).astype(int)
+
+
+    df = df.drop(columns=["Close" , "Volume" , "Future_Return_5"] , errors="ignore")
  
     # Remove NaN 
     df = df.dropna()
