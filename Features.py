@@ -11,54 +11,58 @@ df = proper_preprocessing(df)
 
 def Feature_data(df):
     
-    # umimp para
-    # df["Volume_MA_5"] = df["Volume"].rolling(5).mean()
-    # df["Volume_Spike"] = df["Volume"] / df["Volume_MA_5"]
-    # df.drop(columns=["Volume_MA_5"], inplace=True)
-    df["OBV"] = (np.sign(df["Close"].diff()) * df["Volume"]).fillna(0).cumsum()
-    df["VWAP"] = (df["Close"] * df["Volume"]).cumsum() / df["Volume"].cumsum()
-    df["VWAP_Distance"] = df["Close"] - df["VWAP"]
-    df["Volume_Zscore_20"] = (
+        # RETURNS (core signal)
+    df["Return"] = df["Close"].pct_change()
+    df["Return_Lag1"] = df["Return"].shift(1)
+    df["Return_Lag2"] = df["Return"].shift(2)
+    df["Return_Lag5"] = df["Return"].shift(5)
+    
+    # MOMENTUM
+    df["Momentum_5"] = df["Close"] / df["Close"].shift(5) - 1
+    df["Momentum_10"] = df["Close"] / df["Close"].shift(10) - 1
+    df["Momentum_20"] = df["Close"] / df["Close"].shift(20) - 1
+    
+    # VOLATILITY
+    df["Volatility_5"] = df["Return"].rolling(5).std()
+    df["Volatility_10"] = df["Return"].rolling(10).std()
+    df["Volatility_20"] = df["Return"].rolling(20).std()
+    
+    # TREND (normalized)
+    ema50 = df["Close"].ewm(span=50).mean()
+    ema200 = df["Close"].ewm(span=200).mean()
+    
+    df["Trend_Strength"] = (ema50 / ema200) - 1
+    df["Price_vs_EMA50"] = (df["Close"] / ema50) - 1
+    df["Price_vs_EMA200"] = (df["Close"] / ema200) - 1
+    
+    # VOLUME normalized
+    df["Volume_ratio"] = df["Volume"] / df["Volume"].rolling(20).mean()
+    df["Volume_z"] = (
         (df["Volume"] - df["Volume"].rolling(20).mean()) /
         df["Volume"].rolling(20).std()
     )
-
-# df["Price_Volume_Corr"] = df["Return"].rolling(10).corr(df["Volume"])
-
-    df["Return"] = df["Close"].pct_change()
-    # df["MA_5"] = df["Close"].rolling(window=5).mean()
-    # df["MA_10"] = df["Close"].rolling(window=10).mean()
-    # df["MA_20"] = df["Close"].rolling(window=20).mean()
-    # df["Volatility_5"] = df["Return"].rolling(window=5).std()
-    df["Volatility_10"] = df["Return"].rolling(window=10).std()
-    df["Target"] = np.where(df["Close"].shift(-1) > df["Close"], 1, 0)
-
-    # RSI (14)
+    
+    # RSI normalized
     delta = df["Close"].diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
-    avg_gain = gain.rolling(window=14).mean()
-    avg_loss = loss.rolling(window=14).mean()
-    rs = avg_gain / avg_loss
-    df["RSI_14"] = 100 - (100 / (1 + rs))
-
-    # MACD
-    ema_12 = df["Close"].ewm(span=12, adjust=False).mean()
-    ema_26 = df["Close"].ewm(span=26, adjust=False).mean()
-    df["MACD"] = ema_12 - ema_26
-    df["MACD_Signal"] = df["MACD"].ewm(span=9, adjust=False).mean()
     
-    df["Return_Lag1"] = df["Return"].shift(1)
-    df["Return_Lag2"] = df["Return"].shift(2)
+    avg_gain = gain.rolling(14).mean()
+    avg_loss = loss.rolling(14).mean()
+    
+    rs = avg_gain / avg_loss
+    df["RSI"] = (100 - (100 / (1 + rs))) / 100
+    
+    # TARGET
+    df["Target"] = (df["Close"].shift(-1) > df["Close"]).astype(int)
 
-    df = df.drop(columns=["Close" , "Volumne"] , errors="ignore")
+    df = df.drop(columns=["Close" , "Volume"] , errors="ignore")
  
     # Remove NaN 
     df = df.dropna()
     df = df.reset_index(drop=True)
     print("Preprocessing [Feature part (2/2)] Done")
     # df.to_pickle("processed_stock_data.pkl")
-    print("Data saved as processed_stock_data.pkl")
     
     return df
 

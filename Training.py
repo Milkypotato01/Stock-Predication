@@ -2,16 +2,9 @@ import joblib
 import yfinance as yf
 from sklearn.ensemble import RandomForestClassifier
 from Data_spliting import test_train_divide
-from Input_file_Validating import validate_stock_data
-from Preprocessing import proper_preprocessing
-from Features import Feature_data
 
 
-df = yf.download("RELIANCE.NS", start="1970-01-01", end="2024-12-31")
-validate_stock_data(df)
-df = proper_preprocessing(df)
-df = Feature_data(df)
-data = test_train_divide(df)
+data = test_train_divide()
 
 X_train = data["X_train"]
 X_test = data["X_test"]
@@ -32,8 +25,8 @@ model = RandomForestClassifier(
 print("Training the model...")
 
 model.fit(X_train, y_train)
-joblib.dump(model, "stock_model_v2.pkl")
+joblib.dump(model, "stock_model_v3.pkl")
 
-print("Model trained and saved as stock_model_v2.pkl")
+print("Model trained and saved as stock_model_v3.pkl")
 
 

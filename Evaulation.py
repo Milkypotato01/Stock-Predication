@@ -3,17 +3,10 @@ import yfinance as yf
 import joblib
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_auc_score
 from Data_spliting import test_train_divide
-from Input_file_Validating import validate_stock_data
-from Preprocessing import proper_preprocessing
-from Features import Feature_data
 
 # df = yf.download("TCS.NS", start="1970-01-01", end="2024-12-31")
-df = pd.read_csv("C:\\Users\\dell\\OneDrive\\Desktop\\Stock predictation Project\\test data\\indexProcessed.csv")
 
-validate_stock_data(df)
-df = proper_preprocessing(df)
-df = Feature_data(df)
-data = test_train_divide(df)
+data = test_train_divide()
 
 X_train = data["X_train"]
 X_test = data["X_test"]
@@ -21,7 +14,7 @@ y_train = data["y_train"]
 y_test = data["y_test"]
 
 print("Loading the model...")
-model = joblib.load("stock_model_v2.pkl")
+model = joblib.load("stock_model_v3.pkl")
 model_features = model.feature_names_in_.tolist()
 print("Model Features:", model_features)
 
@@ -60,7 +53,7 @@ def model_evaluation(y_test, y_pred, y_prob):
     "Predicted": y_pred
     })
 
-    strategy_return = df_results["Predicted"] * df["Return"].iloc[-len(y_test):].values
+    strategy_return = df_results["Predicted"] * X_train["Return"].iloc[-len(y_test):].values
     print("Strategy Mean Return:", strategy_return.mean() , "%")
     
     model_features = X_train.columns.tolist()
